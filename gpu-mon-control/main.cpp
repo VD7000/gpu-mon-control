@@ -188,7 +188,15 @@ namespace
         if (!hotkey.empty() &&
             ParseHotkey(hotkey, modifiers, virtualKey))
         {
-            RegisterHotKey(g_DaemonWindow, 1, modifiers, virtualKey);
+            if (!RegisterHotKey(
+                    g_DaemonWindow,
+                    1,
+                    modifiers,
+                    virtualKey))
+            {
+                OutputDebugStringW(
+                    L"gpu-mon-control: unable to register configured hotkey.\n");
+            }
         }
     }
 

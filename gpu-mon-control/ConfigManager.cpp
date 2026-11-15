@@ -140,7 +140,7 @@ namespace
 }
 
 ConfigManager::ConfigManager()
-    : baseResolutionX_(2560.0)
+    : baseResolutionX_(1920.0)
     , baseResolutionY_(1080.0)
 {
     wchar_t buffer[MAX_PATH] = {};
@@ -172,7 +172,7 @@ bool ConfigManager::Load(Config& config, std::wstring& error) const
 {
     std::wstring content;
     toggleHotkey_.clear();
-    baseResolutionX_ = 2560.0;
+    baseResolutionX_ = 1920.0;
     baseResolutionY_ = 1080.0;
 
     if (!ReadFile(content, error))
@@ -200,8 +200,8 @@ bool ConfigManager::WriteDefaultTemplate(std::wstring& error) const
 {
     const std::wstring content =
         L"general:\n"
-        L"  toggle_hotkey: \"\"\n"
-        L"  base_resolution_x: 2560\n"
+        L"  toggle_hotkey: \"Shift+F8\"\n"
+        L"  base_resolution_x: 1920\n"
         L"  base_resolution_y: 1080\n"
         L"gpus:\n"
         L"  primary:\n"
@@ -442,7 +442,9 @@ bool ConfigManager::Parse(
 
                 if (key == L"toggle_hotkey")
                 {
-                    toggleHotkey_ = value;
+                    toggleHotkey_ = value.empty()
+                        ? L"Shift+F8"
+                        : value;
                 }
                 else
                 {

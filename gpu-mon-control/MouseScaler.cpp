@@ -18,7 +18,7 @@ MouseScaler::MouseScaler()
     , isModifying_(false)
     , scaleX_(1.0)
     , scaleY_(1.0)
-    , baseX_(2560.0)
+    , baseX_(1920.0)
     , baseY_(1080.0)
 {
 }
