@@ -4,8 +4,8 @@ Lightweight Windows background tool for Windows 10/11. Its primary purpose is to
 
 ## Features
 
-- **GPU & Display Switching:** Selects the configured GPU and applies the matching display output mode in the same switch operation.
-- **Dynamic Mouse Scaler:** Corrects mouse-axis sensitivity on non-native/stretched aspect ratios using the configured reference resolution and automatically recalculates when the display configuration changes.
+- **GPU & Display Switching:** Selects the configured GPU and applies the matching display output mode in the same operation.
+- **Dynamic Mouse Scaler:** Corrects mouse-axis sensitivity on non-native/stretched aspect ratios using the configured reference resolution and updates when the display configuration changes.
 - **Synchronized Output Switching:** A GPU profile always contains both an `adapter_id` and a `topology`; selecting or toggling a profile applies the current GPU preference and the corresponding display output mode together.
 - **Dual-Mode Execution:** Runs silently in the System Tray with global hotkey support, or executes commands for mouse macros and scripts (G Hub, Razer Synapse, etc.).
 - **Zero Dependencies:** No additional runtime packages are required.
@@ -13,7 +13,7 @@ Lightweight Windows background tool for Windows 10/11. Its primary purpose is to
 ## Quick Start
 
 1. Download the latest release or build the solution in Visual Studio (x64 Release).
-2. Run `gpu-ids.bat` to list GPU hardware identifiers and DirectX adapter ID candidates.
+2. Run `gpu-ids.bat` to list GPU hardware identifiers and create values for the configuration.
 3. Run `gpu-mon-control.exe --init-config` to create the initial `config.yaml` template.
 4. Set the reference resolution and GPU profiles in `config.yaml` next to the executable:
 
@@ -41,7 +41,7 @@ gpus:
 | `gpu-mon-control.exe switch <Name>` | Apply a specific GPU profile (e.g., `switch PrimaryGPU`) and exit |
 | `gpu-mon-control.exe --init-config` | Generate a default `config.yaml` template |
 
-> **Note:** Windows applies the updated default GPU preference only to newly launched applications.
+> **Note:** Windows applies a changed GPU preference to newly launched applications. Already-running applications may require a restart.
 
 ## Primary Use Case: Non-Native Aspect Ratios
 
@@ -53,11 +53,11 @@ general:
   base_resolution_y: 1080
 ```
 
-The tool compares the current Windows display dimensions with these reference values and recalculates the axis correction whenever the display configuration changes. The same calculation is also performed after the configuration is reloaded.
+The tool compares the current display dimensions with these reference values and recalculates the axis correction whenever the display configuration changes. The same calculation is also performed after the configuration is reloaded.
 
 ## Synchronized GPU and Display Output Switching
 
-GPU switching is profile-based. A profile is not only a GPU identifier; it also defines the display topology that must be applied with it:
+GPU switching is profile-based. Each profile contains a GPU identifier and the display mode that must be applied with it:
 
 ```yaml
 gpus:
@@ -76,7 +76,7 @@ The `switch`, `toggle`, tray menu, and global hotkey all use the same flow:
 3. apply its configured display output mode;
 4. update the tray tooltip.
 
-This keeps the active GPU profile and the selected display output synchronized. Windows applies the DirectX GPU preference to newly launched applications; already-running applications may require a restart.
+This keeps the selected GPU and display output synchronized.
 
 ## GPU ID Discovery
 
@@ -84,7 +84,7 @@ This keeps the active GPU profile and the selected display output synchronized. 
 
 - queries installed graphics adapters;
 - prints the adapter name and Windows hardware identifier;
-- derives a `HighPerfAdapter=VENDOR&DEVICE&SUBSYSTEM;` candidate when possible;
+- derives a configuration value when possible;
 - prints the current Windows GPU preference.
 
 Run it from the project or release directory:
@@ -93,4 +93,4 @@ Run it from the project or release directory:
 gpu-ids.bat
 ```
 
-Copy the printed `adapter_id` candidates into the corresponding `gpus` profiles, then assign the required `topology` to each profile. The derived value should be verified against the actual DirectX preference on the target machine before use.
+Copy the printed values into the corresponding profiles, then assign `internal`, `external`, or `extend` to each profile. The values should be verified on the target machine before use.
