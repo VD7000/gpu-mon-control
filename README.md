@@ -1,14 +1,14 @@
 # gpu-mon-control
 
-Lightweight native Win32 background daemon and CLI utility for Windows 11/10. The primary purpose of the software is to correct mouse-axis sensitivity when the active display uses a non-native aspect ratio or a stretched resolution. The correction is calculated from the reference resolution configured by the user in `config.yaml`.
+Lightweight Windows background tool for Windows 10/11. Its primary purpose is to correct mouse-axis sensitivity when the active display uses a non-native aspect ratio or a stretched resolution. The correction is calculated from the reference resolution configured by the user in `config.yaml`.
 
 ## Features
 
-- **GPU & Display Switching:** Updates Windows default high-performance GPU (`DirectXUserGlobalSettings`) and applies the selected display topology (`internal`, `external`, `extend`) in the same switch operation.
-- **Dynamic Mouse Scaler:** Low-level mouse hook (`WH_MOUSE_LL`) that compensates mouse-axis sensitivity on non-native/stretched aspect ratios using the configured reference resolution and automatically recalculates on display resolution changes.
+- **GPU & Display Switching:** Selects the configured GPU and applies the matching display output mode in the same switch operation.
+- **Dynamic Mouse Scaler:** Corrects mouse-axis sensitivity on non-native/stretched aspect ratios using the configured reference resolution and automatically recalculates when the display configuration changes.
 - **Synchronized Output Switching:** A GPU profile always contains both an `adapter_id` and a `topology`; selecting or toggling a profile applies the current GPU preference and the corresponding display output mode together.
-- **Dual-Mode Execution:** Runs silently in the System Tray with global hotkey support, or executes synchronously via CLI arguments for mouse macros (G Hub, Razer Synapse, etc.).
-- **Zero Dependencies:** Written in pure C++14 using native Win32 API.
+- **Dual-Mode Execution:** Runs silently in the System Tray with global hotkey support, or executes commands for mouse macros and scripts (G Hub, Razer Synapse, etc.).
+- **Zero Dependencies:** No additional runtime packages are required.
 
 ## Quick Start
 
@@ -25,18 +25,18 @@ general:
 
 gpus:
   PrimaryGPU:
-    adapter_id: "HighPerfAdapter=10DE&2503&87F51043;"
+    adapter_id: "HighPerfAdapter=VENDOR&DEVICE&SUBSYSTEM;"
     topology: "internal"
   SecondaryGPU:
-    adapter_id: "HighPerfAdapter=10DE&1C03&37161458;"
+    adapter_id: "HighPerfAdapter=VENDOR&DEVICE&SUBSYSTEM;"
     topology: "external"
 ```
 
-## CLI Usage (For Macros & Scripts)
+## Commands (For Macros & Scripts)
 
 | Command | Description |
 |---|---|
-| `gpu-mon-control.exe` | Start background daemon (System Tray + Mouse Scaler + Hotkey) |
+| `gpu-mon-control.exe` | Start the background tool (System Tray + Mouse Scaler + Hotkey) |
 | `gpu-mon-control.exe toggle` | Switch to the next GPU profile in `config.yaml` and exit |
 | `gpu-mon-control.exe switch <Name>` | Apply a specific GPU profile (e.g., `switch PrimaryGPU`) and exit |
 | `gpu-mon-control.exe --init-config` | Generate a default `config.yaml` template |
@@ -53,7 +53,7 @@ general:
   base_resolution_y: 1080
 ```
 
-`MouseScaler` compares the current Windows display metrics with these reference values and recalculates the axis correction whenever `WM_DISPLAYCHANGE` is received. The same calculation is also performed after the configuration is reloaded.
+The tool compares the current Windows display dimensions with these reference values and recalculates the axis correction whenever the display configuration changes. The same calculation is also performed after the configuration is reloaded.
 
 ## Synchronized GPU and Display Output Switching
 
@@ -62,18 +62,18 @@ GPU switching is profile-based. A profile is not only a GPU identifier; it also 
 ```yaml
 gpus:
   PrimaryGPU:
-    adapter_id: "HighPerfAdapter=10DE&2503&87F51043;"
+    adapter_id: "HighPerfAdapter=VENDOR&DEVICE&SUBSYSTEM;"
     topology: "internal"
   SecondaryGPU:
-    adapter_id: "HighPerfAdapter=10DE&1C03&37161458;"
+    adapter_id: "HighPerfAdapter=VENDOR&DEVICE&SUBSYSTEM;"
     topology: "external"
 ```
 
 The `switch`, `toggle`, tray menu, and global hotkey all use the same flow:
 
 1. resolve the selected profile;
-2. write its `adapter_id` to `DirectXUserGlobalSettings`;
-3. apply its `topology` through `SetDisplayConfig`;
+2. select its configured GPU;
+3. apply its configured display output mode;
 4. update the tray tooltip.
 
 This keeps the active GPU profile and the selected display output synchronized. Windows applies the DirectX GPU preference to newly launched applications; already-running applications may require a restart.
@@ -82,10 +82,10 @@ This keeps the active GPU profile and the selected display output synchronized. 
 
 `gpu-ids.bat` is a helper for preparing `config.yaml`. It does not change GPU settings. The script:
 
-- queries installed adapters through `Win32_VideoController`;
-- prints the adapter name and `PNPDeviceID`;
+- queries installed graphics adapters;
+- prints the adapter name and Windows hardware identifier;
 - derives a `HighPerfAdapter=VENDOR&DEVICE&SUBSYSTEM;` candidate when possible;
-- prints the current `DirectXUserGlobalSettings` registry value.
+- prints the current Windows GPU preference.
 
 Run it from the project or release directory:
 
