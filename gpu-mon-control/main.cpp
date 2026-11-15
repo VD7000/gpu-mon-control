@@ -2,11 +2,11 @@
 #include <cmath>
 #include <iostream>
 
-// Жесткие константы эталонного разрешения.
+// Fixed reference-resolution constants.
 constexpr double BASE_X = 2560.0;
 constexpr double BASE_Y = 1080.0;
 
-// Переменные управления хуком.
+// Mouse-hook state.
 HHOOK hMouseHook = nullptr;
 double g_ScaleX = 1.0;
 double g_ScaleY = 1.0;
@@ -23,14 +23,12 @@ void RecalculateScales()
         double rawX = (curX / BASE_X) * (BASE_Y / curY);
         double rawY = 1.0;
 
-        // 2. Ваша прямая компенсация чувствительности через отношение осей
+        // Direct sensitivity compensation based on the axis ratio.
         double speedCompensation = rawY / rawX;
 
-        // 3. Финальный результат: чистая коррекция без потери скорости
-        g_ScaleX = rawX * speedCompensation; // Всегда будет давать 1.0
-        g_ScaleY = rawY * speedCompensation; // Подтягивает Y до нужной пропорции
-
-        // Фикс кодировки консоли Visual StudioW
+        // Final correction without reducing the intended mouse speed.
+        g_ScaleX = rawX * speedCompensation; // Always evaluates to 1.0.
+        g_ScaleY = rawY * speedCompensation; // Adjusts Y to the target proportion.
 
 
         std::cout << "[SYSTEM] RESOLUTION: "
@@ -43,7 +41,7 @@ void RecalculateScales()
 }
 
 
-// Проверка видимости системного курсора.
+// Checks whether the system cursor is visible.
 bool IsCursorVisible()
 {
     CURSORINFO cursorInfo = {};
@@ -57,7 +55,7 @@ bool IsCursorVisible()
     return false;
 }
 
-// Процедура низкоуровневого хука мыши.
+// Low-level mouse-hook callback.
 LRESULT CALLBACK LowLevelMouseProc(
     int nCode,
     WPARAM wParam,
@@ -73,7 +71,7 @@ LRESULT CALLBACK LowLevelMouseProc(
         const MSLLHOOKSTRUCT* mouseStruct =
             reinterpret_cast<const MSLLHOOKSTRUCT*>(lParam);
 
-        // При скрытом курсоре ввод полностью передается игре.
+        // Pass input through unchanged while the cursor is hidden.
         if (isModifying || !IsCursorVisible())
         {
             lastPoint = mouseStruct->pt;
@@ -100,7 +98,7 @@ LRESULT CALLBACK LowLevelMouseProc(
 
             isModifying = false;
 
-            // Подавляем исходное немодифицированное перемещение.
+            // Suppress the original unmodified movement.
             return 1;
         }
 
@@ -110,7 +108,7 @@ LRESULT CALLBACK LowLevelMouseProc(
     return CallNextHookEx(hMouseHook, nCode, wParam, lParam);
 }
 
-// Обработка сообщений окна.
+// Window message procedure.
 LRESULT CALLBACK WndProc(
     HWND hwnd,
     UINT msg,
@@ -127,7 +125,7 @@ LRESULT CALLBACK WndProc(
 
 int main()
 {
-    // Исходный файл должен быть сохранен в UTF-8.
+    // The source file should be saved as UTF-8.
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
 
