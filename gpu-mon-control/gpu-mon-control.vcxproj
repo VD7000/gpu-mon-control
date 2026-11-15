@@ -125,7 +125,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CliDispatcher.cpp" />
+    <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="DisplayController.cpp" />
+    <ClCompile Include="GpuSwitcher.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MouseScaler.cpp" />
+    <ClCompile Include="TrayController.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CliDispatcher.h" />
+    <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="DisplayController.h" />
+    <ClInclude Include="GpuSwitcher.h" />
+    <ClInclude Include="MouseScaler.h" />
+    <ClInclude Include="TrayController.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
