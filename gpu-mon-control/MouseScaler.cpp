@@ -10,6 +10,11 @@ bool MouseScaler::IsInstalled() const
     return mouseHook_ != nullptr;
 }
 
+bool MouseScaler::IsScalingRequired() const
+{
+    return needsScaling_;
+}
+
 MouseScaler* MouseScaler::instance_ = nullptr;
 
 MouseScaler::MouseScaler()
@@ -20,6 +25,8 @@ MouseScaler::MouseScaler()
     , scaleY_(1.0)
     , baseX_(1920.0)
     , baseY_(1080.0)
+    , needsScaling_(false)
+    , enabled_(true)
 {
 }
 
@@ -40,6 +47,17 @@ MouseScaler::~MouseScaler()
 
 bool MouseScaler::Install()
 {
+    enabled_ = true;
+    return InstallHook();
+}
+
+bool MouseScaler::InstallHook()
+{
+    if (!needsScaling_ || mouseHook_ != nullptr)
+    {
+        return true;
+    }
+
     if (instance_ != nullptr)
     {
         return false;
@@ -74,6 +92,12 @@ bool MouseScaler::Install()
 
 void MouseScaler::Uninstall()
 {
+    enabled_ = false;
+    RemoveHook();
+}
+
+void MouseScaler::RemoveHook()
+{
     if (mouseHook_ != nullptr)
     {
         UnhookWindowsHookEx(mouseHook_);
@@ -99,6 +123,13 @@ void MouseScaler::RecalculateScales()
         return;
     }
 
+    const double currentAspect = currentX / currentY;
+    const double baseAspect = baseX_ / baseY_;
+    const double aspectDifference = std::fabs(currentAspect - baseAspect);
+    const double aspectTolerance = 0.000001;
+
+    needsScaling_ = aspectDifference > aspectTolerance;
+
     const double rawX =
         (currentX / baseX_) * (baseY_ / currentY);
 
@@ -107,6 +138,15 @@ void MouseScaler::RecalculateScales()
 
     scaleX_ = rawX * speedCompensation;
     scaleY_ = rawY * speedCompensation;
+
+    if (!needsScaling_)
+    {
+        RemoveHook();
+    }
+    else if (enabled_)
+    {
+        InstallHook();
+    }
 
     std::cout << "[SYSTEM] RESOLUTION: "
               << currentX << "x" << currentY
