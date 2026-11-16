@@ -94,3 +94,6 @@ gpu-ids.bat
 ```
 
 Copy the printed values into the corresponding profiles, then assign `internal`, `external`, or `extend` to each profile. The values should be verified on the target machine before use.
+
+
+As Is
