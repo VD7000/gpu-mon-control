@@ -225,7 +225,9 @@ namespace
         AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
         AppendMenuW(
             menu,
-            MF_STRING | (g_MouseScaler->IsInstalled() ? MF_CHECKED : 0),
+            MF_STRING |
+                (g_MouseScaler->IsInstalled() ? MF_CHECKED : 0) |
+                (g_MouseScaler->IsScalingRequired() ? 0 : MF_GRAYED),
             200,
             L"Mouse Scaler Active");
         AppendMenuW(menu, MF_STRING, 201, L"Reload config.yaml");

@@ -14,6 +14,7 @@ public:
     bool Install();
     void Uninstall();
     bool IsInstalled() const;
+    bool IsScalingRequired() const;
     void SetBaseResolution(double width, double height);
 
     void RecalculateScales();
@@ -31,6 +32,9 @@ private:
 
     bool IsCursorVisible() const;
 
+    bool InstallHook();
+    void RemoveHook();
+
     static MouseScaler* instance_;
 
     HHOOK mouseHook_;
@@ -40,4 +44,6 @@ private:
     double scaleY_;
     double baseX_;
     double baseY_;
+    bool needsScaling_;
+    bool enabled_;
 };
