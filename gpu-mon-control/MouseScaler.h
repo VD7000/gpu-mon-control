@@ -15,6 +15,7 @@ public:
     void Uninstall();
     bool IsInstalled() const;
     bool IsScalingRequired() const;
+    void UpdateHookState();
     void SetBaseResolution(double width, double height);
 
     void RecalculateScales();
@@ -46,4 +47,6 @@ private:
     double baseY_;
     bool needsScaling_;
     bool enabled_;
+    mutable ULONGLONG cursorVisibilityCheckedAt_;
+    mutable bool cursorVisible_;
 };

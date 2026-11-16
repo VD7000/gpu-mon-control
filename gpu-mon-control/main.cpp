@@ -20,6 +20,8 @@ namespace
 {
     constexpr wchar_t WINDOW_CLASS_NAME[] = L"UltraWideMouseFixer";
     constexpr wchar_t MUTEX_NAME[] = L"GpuMonControl_MouseScaler";
+    constexpr UINT CURSOR_STATE_TIMER_ID = 2;
+    constexpr UINT CURSOR_STATE_TIMER_INTERVAL = 100;
 
     MouseScaler* g_MouseScaler = nullptr;
     ConfigManager* g_ConfigManager = nullptr;
@@ -410,6 +412,14 @@ namespace
             UpdateTray();
         }
 
+        if (message == WM_TIMER &&
+            wParam == CURSOR_STATE_TIMER_ID &&
+            g_MouseScaler != nullptr)
+        {
+            g_MouseScaler->UpdateHookState();
+            UpdateTray();
+        }
+
         if (message == WM_HOTKEY && wParam == 1)
         {
             ToggleProfile();
@@ -533,6 +543,12 @@ int RunDaemon()
 
     RegisterConfiguredHotkey();
 
+    SetTimer(
+        hwnd,
+        CURSOR_STATE_TIMER_ID,
+        CURSOR_STATE_TIMER_INTERVAL,
+        nullptr);
+
     if (!mouseScaler.Install())
     {
         UnregisterHotKey(hwnd, 1);
@@ -573,6 +589,7 @@ int RunDaemon()
     }
 
     mouseScaler.Uninstall();
+    KillTimer(hwnd, CURSOR_STATE_TIMER_ID);
     UnregisterHotKey(hwnd, 1);
     tray.Shutdown();
     g_Tray = nullptr;

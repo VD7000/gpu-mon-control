@@ -27,6 +27,8 @@ MouseScaler::MouseScaler()
     , baseY_(1080.0)
     , needsScaling_(false)
     , enabled_(true)
+    , cursorVisibilityCheckedAt_(0)
+    , cursorVisible_(true)
 {
 }
 
@@ -48,6 +50,13 @@ MouseScaler::~MouseScaler()
 bool MouseScaler::Install()
 {
     enabled_ = true;
+
+    if (!needsScaling_ || !IsCursorVisible())
+    {
+        RemoveHook();
+        return true;
+    }
+
     return InstallHook();
 }
 
@@ -139,14 +148,7 @@ void MouseScaler::RecalculateScales()
     scaleX_ = rawX * speedCompensation;
     scaleY_ = rawY * speedCompensation;
 
-    if (!needsScaling_)
-    {
-        RemoveHook();
-    }
-    else if (enabled_)
-    {
-        InstallHook();
-    }
+    UpdateHookState();
 
     std::cout << "[SYSTEM] RESOLUTION: "
               << currentX << "x" << currentY
@@ -155,17 +157,47 @@ void MouseScaler::RecalculateScales()
               << std::endl;
 }
 
+void MouseScaler::UpdateHookState()
+{
+    if (!needsScaling_ || !enabled_)
+    {
+        RemoveHook();
+        return;
+    }
+
+    if (IsCursorVisible())
+    {
+        InstallHook();
+    }
+    else
+    {
+        RemoveHook();
+    }
+}
+
 bool MouseScaler::IsCursorVisible() const
 {
+    const ULONGLONG now = GetTickCount64();
+    const ULONGLONG visibilityCheckInterval = 50;
+
+    if (now - cursorVisibilityCheckedAt_ < visibilityCheckInterval)
+    {
+        return cursorVisible_;
+    }
+
+    cursorVisibilityCheckedAt_ = now;
+
     CURSORINFO cursorInfo = {};
     cursorInfo.cbSize = sizeof(cursorInfo);
 
     if (!GetCursorInfo(&cursorInfo))
     {
+        cursorVisible_ = false;
         return false;
     }
 
-    return (cursorInfo.flags & CURSOR_SHOWING) != 0;
+    cursorVisible_ = (cursorInfo.flags & CURSOR_SHOWING) != 0;
+    return cursorVisible_;
 }
 
 LRESULT CALLBACK MouseScaler::LowLevelMouseProc(
